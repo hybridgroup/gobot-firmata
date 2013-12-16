@@ -319,9 +319,9 @@ func (me *board) process(data []byte) {
 				me.Events = append(me.Events, event{Name: fmt.Sprintf("pin_%v_state", current_buffer[2]), Data: []byte{pin.Value}})
 			case I2C_REPLY:
 				i2c_reply := map[string][]uint16{
-					"slave_address": []uint16{uint16(current_buffer[2]) | uint16(current_buffer[3]<<8)},
-					"register":      []uint16{uint16(current_buffer[4]) | uint16(current_buffer[5]<<8)},
-					"data":          []uint16{uint16(current_buffer[6]) | uint16(current_buffer[7]<<8)},
+					"slave_address": []uint16{uint16(current_buffer[2]) | uint16(current_buffer[3])<<8},
+					"register":      []uint16{uint16(current_buffer[4]) | uint16(current_buffer[5])<<8},
+					"data":          []uint16{uint16(current_buffer[6]) | uint16(current_buffer[7])<<8},
 				}
 				for i := 8; i < len(current_buffer); i = i + 2 {
 					if current_buffer[i] == byte(0xF7) {
@@ -330,8 +330,7 @@ func (me *board) process(data []byte) {
 					if i+2 > len(current_buffer) {
 						break
 					}
-					i2c_reply["data"] = append(i2c_reply["data"], uint16(current_buffer[6])|uint16(current_buffer[7]<<8))
-					i += 2
+					i2c_reply["data"] = append(i2c_reply["data"], uint16(current_buffer[i])|uint16(current_buffer[i+1])<<8)
 				}
 				me.Events = append(me.Events, event{Name: "i2c_reply", I2cReply: i2c_reply})
 

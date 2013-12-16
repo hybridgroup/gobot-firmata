@@ -8,12 +8,16 @@ import (
 
 type FirmataAdaptor struct {
 	gobot.Adaptor
-	Board *board
+	Board      *board
+	i2cAddress byte
 }
 
 func (fa *FirmataAdaptor) Connect() {
 	fa.Board = NewBoard(fa.Port, 57600)
 	fa.Board.Connect()
+}
+
+func (da *FirmataAdaptor) Disconnect() {
 }
 
 func (da *FirmataAdaptor) ServoWrite(pin string, angle uint8) {
@@ -50,6 +54,26 @@ func (da *FirmataAdaptor) DigitalRead(pin string) int {
 	return -1
 }
 
+func (fa *FirmataAdaptor) I2cStart(address byte) {
+	fa.i2cAddress = address
+	fa.Board.I2cConfig([]uint16{0})
+}
+
+func (fa *FirmataAdaptor) I2cRead(size uint16) []uint16 {
+	fa.Board.I2cReadRequest(fa.i2cAddress, size)
+	fa.Board.ReadAndProcess()
+
+	events := fa.findEvents("i2c_reply")
+	if len(events) > 0 {
+		return events[len(events)-1].I2cReply["data"]
+	}
+	return make([]uint16, 0)
+}
+
+func (fa *FirmataAdaptor) I2cWrite(data []uint16) {
+	fa.Board.I2cWriteRequest(fa.i2cAddress, data)
+}
+
 func (da *FirmataAdaptor) findEvents(name string) []event {
 	ret := make([]event, 0)
 	for key, val := range da.Board.Events {
@@ -59,7 +83,4 @@ func (da *FirmataAdaptor) findEvents(name string) []event {
 		}
 	}
 	return ret
-}
-
-func (da *FirmataAdaptor) Disconnect() {
 }
