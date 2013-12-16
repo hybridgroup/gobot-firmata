@@ -16,6 +16,13 @@ func (fa *FirmataAdaptor) Connect() {
 	fa.Board.Connect()
 }
 
+func (da *FirmataAdaptor) PwmWrite(pin string, level uint8) {
+	p, _ := strconv.Atoi(pin)
+
+	da.Board.SetPinMode(byte(p), PWM)
+	da.Board.AnalogWrite(byte(p), byte(level))
+}
+
 func (da *FirmataAdaptor) DigitalWrite(pin string, level string) {
 	p, _ := strconv.Atoi(pin)
 	l, _ := strconv.Atoi(level)
