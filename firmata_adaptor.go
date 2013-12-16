@@ -16,6 +16,13 @@ func (fa *FirmataAdaptor) Connect() {
 	fa.Board.Connect()
 }
 
+func (da *FirmataAdaptor) ServoWrite(pin string, angle uint8) {
+	p, _ := strconv.Atoi(pin)
+
+	da.Board.SetPinMode(byte(p), SERVO)
+	da.Board.AnalogWrite(byte(p), byte(angle))
+}
+
 func (da *FirmataAdaptor) PwmWrite(pin string, level uint8) {
 	p, _ := strconv.Atoi(pin)
 
