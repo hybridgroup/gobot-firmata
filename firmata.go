@@ -62,7 +62,7 @@ type board struct {
 type pin struct {
 	SupportedModes []byte
 	Mode           byte
-	Value          byte
+	Value          int
 	AnalogChannel  byte
 }
 
@@ -106,16 +106,47 @@ func (b *board) Connect() {
 }
 
 func (b *board) initBoard() {
-	b.QueryFirmware()
-	time.Sleep(500 * time.Millisecond)
-	b.QueryCapabilities()
-	time.Sleep(500 * time.Millisecond)
-	b.QueryAnalogMapping()
-	time.Sleep(500 * time.Millisecond)
+	for {
+		b.QueryFirmware()
+		time.Sleep(500 * time.Millisecond)
+		b.ReadAndProcess()
+		if len(b.FindEvents("firmware_query")) > 0 {
+			break
+		}
+	}
+	for {
+		b.QueryCapabilities()
+		time.Sleep(500 * time.Millisecond)
+		b.ReadAndProcess()
+		if len(b.FindEvents("capability_query")) > 0 {
+			break
+		}
+	}
+	for {
+		b.QueryAnalogMapping()
+		time.Sleep(500 * time.Millisecond)
+		b.ReadAndProcess()
+		if len(b.FindEvents("analog_mapping_query")) > 0 {
+			break
+		}
+	}
 	b.TogglePinReporting(0, HIGH, REPORT_DIGITAL)
 	time.Sleep(500 * time.Millisecond)
 	b.TogglePinReporting(1, HIGH, REPORT_DIGITAL)
 	time.Sleep(500 * time.Millisecond)
+}
+
+func (b *board) FindEvents(name string) []event {
+	ret := make([]event, 0)
+	for key, val := range b.Events {
+		if val.Name == name {
+			ret = append(ret, val)
+			if len(b.Events) > key+1 {
+				b.Events = append(b.Events[:key], b.Events[key+1:]...)
+			}
+		}
+	}
+	return ret
 }
 
 func (b *board) ReadAndProcess() {
@@ -135,7 +166,7 @@ func (b *board) DigitalWrite(pin byte, value byte) {
 	port := byte(math.Floor(float64(pin) / 8))
 	portValue := byte(0)
 
-	b.Pins[pin].Value = value
+	b.Pins[pin].Value = int(value)
 
 	for i := byte(0); i < 8; i++ {
 		if b.Pins[8*port+i].Value != 0 {
@@ -146,7 +177,7 @@ func (b *board) DigitalWrite(pin byte, value byte) {
 }
 
 func (b *board) AnalogWrite(pin byte, value byte) {
-	b.Pins[pin].Value = value
+	b.Pins[pin].Value = int(value)
 	b.write([]byte{ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F})
 }
 
@@ -232,10 +263,11 @@ func (me *board) process(data []byte) {
 			least_significant_byte, _ := buf.ReadByte()
 			most_significant_byte, _ := buf.ReadByte()
 
-			value := least_significant_byte | (most_significant_byte << 7)
+			value := uint(least_significant_byte) | uint(most_significant_byte)<<7
 			pin := (b & 0x0F)
-			me.Pins[me.AnalogPins[pin]].Value = value
-			me.Events = append(me.Events, event{Name: fmt.Sprintf("analog_read_%v", pin), Data: []byte{me.Pins[me.AnalogPins[pin]].Value}})
+
+			me.Pins[me.AnalogPins[pin]].Value = int(value)
+			me.Events = append(me.Events, event{Name: fmt.Sprintf("analog_read_%v", pin), Data: []byte{byte(value >> 24), byte(value >> 16), byte(value >> 8), byte(value & 0xff)}})
 
 		case DIGITAL_MESSAGE:
 			port := b & 0x0F
@@ -247,8 +279,8 @@ func (me *board) process(data []byte) {
 				pin_number := (8*byte(port) + byte(i))
 				pin := me.Pins[pin_number]
 				if byte(pin.Mode) == INPUT {
-					pin.Value = (port_value >> (byte(i) & 0x07)) & 0x01
-					me.Events = append(me.Events, event{Name: fmt.Sprintf("digital_read_%v", pin_number), Data: []byte{pin.Value}})
+					pin.Value = int((port_value >> (byte(i) & 0x07)) & 0x01)
+					me.Events = append(me.Events, event{Name: fmt.Sprintf("digital_read_%v", pin_number), Data: []byte{byte(pin.Value & 0xff)}})
 				}
 			}
 
@@ -307,16 +339,16 @@ func (me *board) process(data []byte) {
 			case PIN_STATE_RESPONSE:
 				pin := me.Pins[current_buffer[2]]
 				pin.Mode = current_buffer[3]
-				pin.Value = current_buffer[4]
+				pin.Value = int(current_buffer[4])
 
 				if len(current_buffer) > 6 {
-					pin.Value = pin.Value | current_buffer[5]<<7
+					pin.Value = int(uint(pin.Value) | uint(current_buffer[5])<<7)
 				}
 				if len(current_buffer) > 7 {
-					pin.Value = pin.Value | current_buffer[6]<<14
+					pin.Value = int(uint(pin.Value) | uint(current_buffer[6])<<14)
 				}
 
-				me.Events = append(me.Events, event{Name: fmt.Sprintf("pin_%v_state", current_buffer[2]), Data: []byte{pin.Value}})
+				me.Events = append(me.Events, event{Name: fmt.Sprintf("pin_%v_state", current_buffer[2]), Data: []byte{byte(pin.Value & 0xff)}})
 			case I2C_REPLY:
 				i2c_reply := map[string][]uint16{
 					"slave_address": []uint16{uint16(current_buffer[2]) | uint16(current_buffer[3])<<8},

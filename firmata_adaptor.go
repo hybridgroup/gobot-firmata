@@ -47,11 +47,30 @@ func (da *FirmataAdaptor) DigitalRead(pin string) int {
 	da.Board.SetPinMode(byte(p), INPUT)
 	da.Board.TogglePinReporting(byte(p), HIGH, REPORT_DIGITAL)
 	da.Board.ReadAndProcess()
-	events := da.findEvents(fmt.Sprintf("digital_read_%v", pin))
+	events := da.Board.FindEvents(fmt.Sprintf("digital_read_%v", pin))
 	if len(events) > 0 {
 		return int(events[len(events)-1].Data[0])
 	}
 	return -1
+}
+
+// NOTE pins are numbered A0-A5, which translate to digital pins 14-19
+func (da *FirmataAdaptor) AnalogRead(pin string) int {
+	p, _ := strconv.Atoi(pin)
+	p = da.digitalPin(p)
+	da.Board.SetPinMode(byte(p), ANALOG)
+	da.Board.TogglePinReporting(byte(p), HIGH, REPORT_ANALOG)
+	da.Board.ReadAndProcess()
+	events := da.Board.FindEvents(fmt.Sprintf("analog_read_%v", pin))
+	if len(events) > 0 {
+		event := events[len(events)-1]
+		return int(uint(event.Data[0])<<24 | uint(event.Data[1])<<16 | uint(event.Data[2])<<8 | uint(event.Data[3]))
+	}
+	return -1
+}
+
+func (da *FirmataAdaptor) digitalPin(pin int) int {
+	return pin + 14
 }
 
 func (fa *FirmataAdaptor) I2cStart(address byte) {
@@ -63,7 +82,7 @@ func (fa *FirmataAdaptor) I2cRead(size uint16) []uint16 {
 	fa.Board.I2cReadRequest(fa.i2cAddress, size)
 	fa.Board.ReadAndProcess()
 
-	events := fa.findEvents("i2c_reply")
+	events := fa.Board.FindEvents("i2c_reply")
 	if len(events) > 0 {
 		return events[len(events)-1].I2cReply["data"]
 	}
@@ -72,15 +91,4 @@ func (fa *FirmataAdaptor) I2cRead(size uint16) []uint16 {
 
 func (fa *FirmataAdaptor) I2cWrite(data []uint16) {
 	fa.Board.I2cWriteRequest(fa.i2cAddress, data)
-}
-
-func (da *FirmataAdaptor) findEvents(name string) []event {
-	ret := make([]event, 0)
-	for key, val := range da.Board.Events {
-		if val.Name == name {
-			ret = append(ret, val)
-			da.Board.Events = append(da.Board.Events[:key], da.Board.Events[key+1:]...)
-		}
-	}
-	return ret
 }
