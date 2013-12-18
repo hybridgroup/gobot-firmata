@@ -26,8 +26,8 @@ func main() {
 	}
 
 	robot := gobot.Robot{
-		Connections: []interface{}{firmata},
-		Devices:     []interface{}{servo},
+		Connections: []gobot.Connection{firmata},
+		Devices:     []gobot.Device{servo},
 		Work:        work,
 	}
 

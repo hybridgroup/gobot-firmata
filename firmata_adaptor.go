@@ -12,13 +12,16 @@ type FirmataAdaptor struct {
 	i2cAddress byte
 }
 
-func (fa *FirmataAdaptor) Connect() {
+func (fa *FirmataAdaptor) Connect() bool {
 	fa.Board = NewBoard(fa.Port, 57600)
 	fa.Board.Connect()
+	fa.Connected = true
+	return true
 }
 
-func (da *FirmataAdaptor) Disconnect() {
-}
+func (da *FirmataAdaptor) Reconnect() bool  { return false }
+func (da *FirmataAdaptor) Disconnect() bool { return false }
+func (da *FirmataAdaptor) Finalize() bool   { return false }
 
 func (da *FirmataAdaptor) ServoWrite(pin string, angle uint8) {
 	p, _ := strconv.Atoi(pin)

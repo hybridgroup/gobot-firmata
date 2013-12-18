@@ -31,8 +31,8 @@ func main() {
 	}
 
 	robot := gobot.Robot{
-		Connections: []interface{}{firmata},
-		Devices:     []interface{}{sensor, led},
+		Connections: []gobot.Connection{firmata},
+		Devices:     []gobot.Device{sensor, led},
 		Work:        work,
 	}
 
