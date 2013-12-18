@@ -45,6 +45,13 @@ func main() {
         robot.Start()
 }
 ```
+## Hardware Support
+The following firmata devices have been tested and are currently supported:
+
+  - [Arduino uno r3](http://arduino.cc/en/Main/arduinoBoardUno)
+  - [Teensy 3.0](http://www.pjrc.com/store/teensy3.html)
+
+More devices are coming soon...
 
 ## Documentation
 We're busy adding documentation to our web site at http://gobot.io/ please check there as we continue to work on Gobot
