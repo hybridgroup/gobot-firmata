@@ -14,35 +14,34 @@ Install the library with: `go get -u github.com/hybridgroup/gobot-firmata`
 package main
 
 import (
-        "fmt"
-        "github.com/hybridgroup/gobot"
-        "github.com/hybridgroup/gobot-firmata"
-        "github.com/hybridgroup/gobot-gpio"
+	"github.com/hybridgroup/gobot"
+	"github.com/hybridgroup/gobot-firmata"
+	"github.com/hybridgroup/gobot-gpio"
 )
 
 func main() {
 
-        firmata := new(gobotFirmata.FirmataAdaptor)
-        firmata.Name = "firmata"
-        firmata.Port = "/dev/ttyACM0"
+	firmata := new(gobotFirmata.FirmataAdaptor)
+	firmata.Name = "firmata"
+	firmata.Port = "/dev/ttyACM0"
 
-        led := gobotGPIO.NewLed(firmata)
-        led.Name = "led"
-        led.Pin = "13"
+	led := gobotGPIO.NewLed(firmata)
+	led.Name = "led"
+	led.Pin = "13"
 
-        work := func() {
-                gobot.Every("1s", func() {
-                        led.Toggle()
-                })
-        }
+	work := func() {
+		gobot.Every("1s", func() {
+			led.Toggle()
+		})
+	}
 
-        robot := gobot.Robot{
-                Connections: []interface{}{firmata},
-                Devices:     []interface{led},
-                Work:        work,
-        }
+	robot := gobot.Robot{
+		Connections: []gobot.Connection{firmata},
+		Devices:     []gobot.Device{led},
+		Work:        work,
+	}
 
-        robot.Start()
+	robot.Start()
 }
 ```
 ## Hardware Support
