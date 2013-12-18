@@ -16,21 +16,17 @@ func main() {
 	wiichuck.Name = "wiichuck"
 
 	work := func() {
-		go func() {
-			for {
-				fmt.Println("joystick", gobot.On(wiichuck.Events["joystick"]))
-			}
-		}()
-		go func() {
-			for {
-				fmt.Println("c", gobot.On(wiichuck.Events["c_button"]))
-			}
-		}()
-		go func() {
-			for {
-				fmt.Println("z", gobot.On(wiichuck.Events["z_button"]))
-			}
-		}()
+		gobot.On(wiichuck.Events["joystick"], func(data interface{}) {
+			fmt.Println("joystick")
+		})
+
+		gobot.On(wiichuck.Events["c_button"], func(data interface{}) {
+			fmt.Println("c")
+		})
+
+		gobot.On(wiichuck.Events["z_button"], func(data interface{}) {
+			fmt.Println("z")
+		})
 	}
 
 	robot := gobot.Robot{

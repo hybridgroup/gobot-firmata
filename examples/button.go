@@ -21,18 +21,13 @@ func main() {
 	led.Pin = "13"
 
 	work := func() {
-		go func() {
-			for {
-				gobot.On(button.Events["push"])
-				led.On()
-			}
-		}()
-		go func() {
-			for {
-				gobot.On(button.Events["release"])
-				led.Off()
-			}
-		}()
+		gobot.On(button.Events["push"], func(data interface{}) {
+			led.On()
+		})
+
+		gobot.On(button.Events["release"], func(data interface{}) {
+			led.Off()
+		})
 	}
 
 	robot := gobot.Robot{
