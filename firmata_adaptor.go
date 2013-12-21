@@ -23,26 +23,25 @@ func (da *FirmataAdaptor) Reconnect() bool  { return false }
 func (da *FirmataAdaptor) Disconnect() bool { return false }
 func (da *FirmataAdaptor) Finalize() bool   { return false }
 
-func (da *FirmataAdaptor) ServoWrite(pin string, angle uint8) {
+func (da *FirmataAdaptor) ServoWrite(pin string, angle byte) {
 	p, _ := strconv.Atoi(pin)
 
 	da.Board.SetPinMode(byte(p), SERVO)
-	da.Board.AnalogWrite(byte(p), byte(angle))
+	da.Board.AnalogWrite(byte(p), angle)
 }
 
-func (da *FirmataAdaptor) PwmWrite(pin string, level uint8) {
+func (da *FirmataAdaptor) PwmWrite(pin string, level byte) {
 	p, _ := strconv.Atoi(pin)
 
 	da.Board.SetPinMode(byte(p), PWM)
-	da.Board.AnalogWrite(byte(p), byte(level))
+	da.Board.AnalogWrite(byte(p), level)
 }
 
-func (da *FirmataAdaptor) DigitalWrite(pin string, level string) {
+func (da *FirmataAdaptor) DigitalWrite(pin string, level byte) {
 	p, _ := strconv.Atoi(pin)
-	l, _ := strconv.Atoi(level)
 
 	da.Board.SetPinMode(byte(p), OUTPUT)
-	da.Board.DigitalWrite(byte(p), byte(l))
+	da.Board.DigitalWrite(byte(p), level)
 }
 
 func (da *FirmataAdaptor) DigitalRead(pin string) int {
