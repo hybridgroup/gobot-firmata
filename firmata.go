@@ -38,6 +38,7 @@ const (
 	PIN_STATE_RESPONSE          byte = 0x6E
 	ANALOG_MAPPING_QUERY        byte = 0x69
 	ANALOG_MAPPING_RESPONSE     byte = 0x6A
+	STRING_DATA                 byte = 0x71
 	I2C_REQUEST                 byte = 0x76
 	I2C_REPLY                   byte = 0x77
 	I2C_CONFIG                  byte = 0x78
@@ -220,8 +221,8 @@ func (b *board) I2cReadRequest(slave_address byte, num_bytes uint16) {
 func (b *board) I2cWriteRequest(slave_address byte, data []uint16) {
 	ret := []byte{START_SYSEX, I2C_REQUEST, slave_address, (I2C_MODE_WRITE << 3)}
 	for _, val := range data {
-		ret = append(ret, byte(val&0xff))
-		ret = append(ret, byte((val>>8)&0xff))
+		ret = append(ret, byte(val&0x7F))
+		ret = append(ret, byte((val>>7)&0x7F))
 	}
 	ret = append(ret, END_SYSEX)
 	b.write(ret)
@@ -230,8 +231,8 @@ func (b *board) I2cWriteRequest(slave_address byte, data []uint16) {
 func (b *board) I2cConfig(data []uint16) {
 	ret := []byte{START_SYSEX, I2C_CONFIG}
 	for _, val := range data {
-		ret = append(ret, byte(val&0xff))
-		ret = append(ret, byte((val>>8)&0xff))
+		ret = append(ret, byte(val&0xFF))
+		ret = append(ret, byte((val>>8)&0xFF))
 	}
 	ret = append(ret, END_SYSEX)
 	b.write(ret)
@@ -378,8 +379,12 @@ func (me *board) process(data []byte) {
 				}
 				me.FirmwareName = string(name[:])
 				me.Events = append(me.Events, event{Name: "firmware_query"})
+			case STRING_DATA:
+				str := current_buffer[2 : len(current_buffer)-1]
+				fmt.Println(string(str[:len(str)]))
+				me.Events = append(me.Events, event{Name: "string_data", Data: str})
 			default:
-				fmt.Println("bad byte")
+				fmt.Println("bad byte", fmt.Sprintf("0x%x", command))
 			}
 		}
 	}
