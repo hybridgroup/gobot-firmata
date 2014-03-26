@@ -58,6 +58,8 @@ func checkTravis(robot *gobot.Robot) {
 }
 
 func main() {
+	master := gobot.GobotMaster()
+
 	firmata := new(gobotFirmata.FirmataAdaptor)
 	firmata.Name = "firmata"
 	firmata.Port = "/dev/ttyACM0"
@@ -74,18 +76,19 @@ func main() {
 	blue.Name = "blue"
 	blue.Pin = "5"
 
-	work := func(me *gobot.Robot) {
-		checkTravis(me)
+	work := func() {
+		checkTravis(master.FindRobot("travis"))
 		gobot.Every("10s", func() {
-			checkTravis(me)
+			checkTravis(master.FindRobot("travis"))
 		})
 	}
 
-	robot := gobot.Robot{
+	master.Robots = append(master.Robots, gobot.Robot{
+		Name:        "travis",
 		Connections: []gobot.Connection{firmata},
 		Devices:     []gobot.Device{red, green, blue},
 		Work:        work,
-	}
+	})
 
-	robot.Start()
+	master.Start()
 }
