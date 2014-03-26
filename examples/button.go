@@ -14,7 +14,6 @@ func main() {
 	button := gobotGPIO.NewButton(firmata)
 	button.Name = "button"
 	button.Pin = "2"
-	button.Interval = "0.01s"
 
 	led := gobotGPIO.NewLed(firmata)
 	led.Name = "led"
