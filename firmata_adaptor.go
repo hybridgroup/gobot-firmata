@@ -23,6 +23,7 @@ func (da *FirmataAdaptor) Reconnect() bool  { return false }
 func (da *FirmataAdaptor) Disconnect() bool { return false }
 func (da *FirmataAdaptor) Finalize() bool   { return false }
 
+func (da *FirmataAdaptor) InitServo() {}
 func (da *FirmataAdaptor) ServoWrite(pin string, angle byte) {
 	p, _ := strconv.Atoi(pin)
 
