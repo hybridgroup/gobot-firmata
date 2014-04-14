@@ -3,7 +3,6 @@ package gobotFirmata
 import (
 	"bytes"
 	"fmt"
-	"github.com/tarm/goserial"
 	"io"
 	"math"
 	"time"
@@ -73,16 +72,11 @@ type event struct {
 	I2cReply map[string][]uint16
 }
 
-func NewBoard(port string, baud int) *board {
+func NewBoard(sp io.ReadWriteCloser) *board {
 	board := new(board)
-	s, err := serial.OpenPort(&serial.Config{Name: port, Baud: baud})
-	if err != nil {
-		panic("Could not open port")
-	}
-
 	board.MajorVersion = 0
 	board.MinorVersion = 0
-	board.Serial = s
+	board.Serial = sp
 	board.FirmwareName = ""
 	board.Pins = make([]pin, 100)
 	board.AnalogPins = make([]byte, 0)

@@ -12,16 +12,20 @@ type FirmataAdaptor struct {
 	i2cAddress byte
 }
 
+var connect = func(fa *FirmataAdaptor) {
+	fa.Board = NewBoard(gobot.ConnectToSerial(fa.Port, 57600))
+}
+
 func (fa *FirmataAdaptor) Connect() bool {
-	fa.Board = NewBoard(fa.Port, 57600)
+	connect(fa)
 	fa.Board.Connect()
 	fa.Connected = true
 	return true
 }
 
-func (da *FirmataAdaptor) Reconnect() bool  { return false }
-func (da *FirmataAdaptor) Disconnect() bool { return false }
-func (da *FirmataAdaptor) Finalize() bool   { return false }
+func (da *FirmataAdaptor) Reconnect() bool  { return true }
+func (da *FirmataAdaptor) Disconnect() bool { return true }
+func (da *FirmataAdaptor) Finalize() bool   { return true }
 
 func (da *FirmataAdaptor) InitServo() {}
 func (da *FirmataAdaptor) ServoWrite(pin string, angle byte) {
