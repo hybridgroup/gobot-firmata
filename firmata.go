@@ -72,7 +72,7 @@ type event struct {
 	I2cReply map[string][]uint16
 }
 
-func NewBoard(sp io.ReadWriteCloser) *board {
+func newBoard(sp io.ReadWriteCloser) *board {
 	board := new(board)
 	board.MajorVersion = 0
 	board.MinorVersion = 0
@@ -85,16 +85,16 @@ func NewBoard(sp io.ReadWriteCloser) *board {
 	return board
 }
 
-func (b *board) Connect() {
+func (b *board) connect() {
 	if b.Connected == false {
 		b.initBoard()
 		b.Connected = true
 
 		go func() {
 			for {
-				b.QueryReportVersion()
+				b.queryReportVersion()
 				time.Sleep(1000 * time.Millisecond)
-				b.ReadAndProcess()
+				b.readAndProcess()
 			}
 		}()
 	}
@@ -102,36 +102,36 @@ func (b *board) Connect() {
 
 func (b *board) initBoard() {
 	for {
-		b.QueryFirmware()
+		b.queryFirmware()
 		time.Sleep(500 * time.Millisecond)
-		b.ReadAndProcess()
-		if len(b.FindEvents("firmware_query")) > 0 {
+		b.readAndProcess()
+		if len(b.findEvents("firmware_query")) > 0 {
 			break
 		}
 	}
 	for {
-		b.QueryCapabilities()
+		b.queryCapabilities()
 		time.Sleep(500 * time.Millisecond)
-		b.ReadAndProcess()
-		if len(b.FindEvents("capability_query")) > 0 {
+		b.readAndProcess()
+		if len(b.findEvents("capability_query")) > 0 {
 			break
 		}
 	}
 	for {
-		b.QueryAnalogMapping()
+		b.queryAnalogMapping()
 		time.Sleep(500 * time.Millisecond)
-		b.ReadAndProcess()
-		if len(b.FindEvents("analog_mapping_query")) > 0 {
+		b.readAndProcess()
+		if len(b.findEvents("analog_mapping_query")) > 0 {
 			break
 		}
 	}
-	b.TogglePinReporting(0, HIGH, REPORT_DIGITAL)
+	b.togglePinReporting(0, HIGH, REPORT_DIGITAL)
 	time.Sleep(500 * time.Millisecond)
-	b.TogglePinReporting(1, HIGH, REPORT_DIGITAL)
+	b.togglePinReporting(1, HIGH, REPORT_DIGITAL)
 	time.Sleep(500 * time.Millisecond)
 }
 
-func (b *board) FindEvents(name string) []event {
+func (b *board) findEvents(name string) []event {
 	ret := make([]event, 0)
 	for key, val := range b.Events {
 		if val.Name == name {
@@ -144,7 +144,7 @@ func (b *board) FindEvents(name string) []event {
 	return ret
 }
 
-func (b *board) ReadAndProcess() {
+func (b *board) readAndProcess() {
 	b.process(b.read())
 }
 
@@ -152,12 +152,12 @@ func (b *board) reset() {
 	b.write([]byte{SYSTEM_RESET})
 }
 
-func (b *board) SetPinMode(pin byte, mode byte) {
+func (b *board) setPinMode(pin byte, mode byte) {
 	b.Pins[pin].Mode = mode
 	b.write([]byte{PIN_MODE, pin, mode})
 }
 
-func (b *board) DigitalWrite(pin byte, value byte) {
+func (b *board) digitalWrite(pin byte, value byte) {
 	port := byte(math.Floor(float64(pin) / 8))
 	portValue := byte(0)
 
@@ -171,48 +171,48 @@ func (b *board) DigitalWrite(pin byte, value byte) {
 	b.write([]byte{DIGITAL_MESSAGE | port, portValue & 0x7F, (portValue >> 7) & 0x7F})
 }
 
-func (b *board) AnalogWrite(pin byte, value byte) {
+func (b *board) analogWrite(pin byte, value byte) {
 	b.Pins[pin].Value = int(value)
 	b.write([]byte{ANALOG_MESSAGE | pin, value & 0x7F, (value >> 7) & 0x7F})
 }
 
-func (b *board) Version() string {
+func (b *board) version() string {
 	return fmt.Sprintf("%v.%v", b.MajorVersion, b.MinorVersion)
 }
 
-func (b *board) ReportVersion() {
+func (b *board) reportVersion() {
 	b.write([]byte{REPORT_VERSION})
 }
 
-func (b *board) QueryFirmware() {
+func (b *board) queryFirmware() {
 	b.write([]byte{START_SYSEX, FIRMWARE_QUERY, END_SYSEX})
 }
 
-func (b *board) QueryPinState(pin byte) {
+func (b *board) queryPinState(pin byte) {
 	b.write([]byte{START_SYSEX, PIN_STATE_QUERY, pin, END_SYSEX})
 }
 
-func (b *board) QueryReportVersion() {
+func (b *board) queryReportVersion() {
 	b.write([]byte{REPORT_VERSION})
 }
 
-func (b *board) QueryCapabilities() {
+func (b *board) queryCapabilities() {
 	b.write([]byte{START_SYSEX, CAPABILITY_QUERY, END_SYSEX})
 }
 
-func (b *board) QueryAnalogMapping() {
+func (b *board) queryAnalogMapping() {
 	b.write([]byte{START_SYSEX, ANALOG_MAPPING_QUERY, END_SYSEX})
 }
 
-func (b *board) TogglePinReporting(pin byte, state byte, mode byte) {
+func (b *board) togglePinReporting(pin byte, state byte, mode byte) {
 	b.write([]byte{mode | pin, state})
 }
 
-func (b *board) I2cReadRequest(slave_address byte, num_bytes uint16) {
+func (b *board) i2cReadRequest(slave_address byte, num_bytes uint16) {
 	b.write([]byte{START_SYSEX, I2C_REQUEST, slave_address, (I2C_MODE_READ << 3), byte(num_bytes & 0x7F), byte(((num_bytes >> 7) & 0x7F)), END_SYSEX})
 }
 
-func (b *board) I2cWriteRequest(slave_address byte, data []uint16) {
+func (b *board) i2cWriteRequest(slave_address byte, data []uint16) {
 	ret := []byte{START_SYSEX, I2C_REQUEST, slave_address, (I2C_MODE_WRITE << 3)}
 	for _, val := range data {
 		ret = append(ret, byte(val&0x7F))
@@ -222,7 +222,7 @@ func (b *board) I2cWriteRequest(slave_address byte, data []uint16) {
 	b.write(ret)
 }
 
-func (b *board) I2cConfig(data []uint16) {
+func (b *board) i2cConfig(data []uint16) {
 	ret := []byte{START_SYSEX, I2C_CONFIG}
 	for _, val := range data {
 		ret = append(ret, byte(val&0xFF))
