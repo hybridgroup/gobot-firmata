@@ -4,6 +4,8 @@ Gobot (http://gobot.io/) is a library for robotics and physical computing using 
 
 This library provides an adaptor for microcontrollers such as Arduino that support the Firmata protocol (http://firmata.org/wiki/Main_Page)
 
+[![Build Status](https://travis-ci.org/hybridgroup/gobot-firmata.svg?branch=master)](https://travis-ci.org/hybridgroup/gobot-firmata) [![Coverage Status](https://coveralls.io/repos/hybridgroup/gobot-firmata/badge.png)](https://coveralls.io/r/hybridgroup/gobot-firmata)
+
 ## Getting Started
 
 Install the library with: `go get -u github.com/hybridgroup/gobot-firmata`

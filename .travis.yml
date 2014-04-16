@@ -1,0 +1,18 @@
+language: go
+go:
+ - 1.2
+ - release
+ - tip
+install:
+ - go get -v . && go build -v .
+ - go get github.com/onsi/ginkgo
+ - go get github.com/onsi/gomega
+ - go get code.google.com/p/go.tools/cmd/cover
+ - go get github.com/mattn/goveralls
+script:
+ - go test -covermode=count -coverprofile=profile.cov github.com/hybridgroup/gobot-firmata
+ - export PATH=$PATH:$HOME/gopath/bin/
+ - goveralls -coverprofile=profile.cov -service=travis-ci -repotoken=h7P30blSwGLMNC6Ew9PmSJ27zMwzFREbe
+
+notifications:
+  irc: "irc.freenode.org#gobotio"
