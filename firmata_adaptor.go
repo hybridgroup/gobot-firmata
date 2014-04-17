@@ -3,6 +3,7 @@ package gobotFirmata
 import (
 	"fmt"
 	"github.com/hybridgroup/gobot"
+	"github.com/tarm/goserial"
 	"strconv"
 )
 
@@ -13,7 +14,11 @@ type FirmataAdaptor struct {
 }
 
 var connect = func(fa *FirmataAdaptor) {
-	fa.Board = newBoard(gobot.ConnectToSerial(fa.Port, 57600))
+	sp, err := serial.OpenPort(&serial.Config{Name: fa.Port, Baud: 57600})
+	if err != nil {
+		panic(err)
+	}
+	fa.Board = newBoard(sp)
 }
 
 func (fa *FirmataAdaptor) Connect() bool {
