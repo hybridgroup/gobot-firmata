@@ -28,9 +28,15 @@ func (fa *FirmataAdaptor) Connect() bool {
 	return true
 }
 
-func (da *FirmataAdaptor) Reconnect() bool  { return true }
-func (da *FirmataAdaptor) Disconnect() bool { return true }
-func (da *FirmataAdaptor) Finalize() bool   { return true }
+func (da *FirmataAdaptor) Reconnect() bool { return true }
+func (da *FirmataAdaptor) Disconnect() bool {
+	err := da.Board.Serial.Close()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return true
+}
+func (da *FirmataAdaptor) Finalize() bool { return da.Disconnect() }
 
 func (da *FirmataAdaptor) InitServo() {}
 func (da *FirmataAdaptor) ServoWrite(pin string, angle byte) {
