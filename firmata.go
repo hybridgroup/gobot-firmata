@@ -93,7 +93,7 @@ func (b *board) connect() {
 		go func() {
 			for {
 				b.queryReportVersion()
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				b.readAndProcess()
 			}
 		}()
@@ -103,7 +103,7 @@ func (b *board) connect() {
 func (b *board) initBoard() {
 	for {
 		b.queryFirmware()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		b.readAndProcess()
 		if len(b.findEvents("firmware_query")) > 0 {
 			break
@@ -111,7 +111,7 @@ func (b *board) initBoard() {
 	}
 	for {
 		b.queryCapabilities()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		b.readAndProcess()
 		if len(b.findEvents("capability_query")) > 0 {
 			break
@@ -119,16 +119,16 @@ func (b *board) initBoard() {
 	}
 	for {
 		b.queryAnalogMapping()
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		b.readAndProcess()
 		if len(b.findEvents("analog_mapping_query")) > 0 {
 			break
 		}
 	}
 	b.togglePinReporting(0, HIGH, REPORT_DIGITAL)
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 	b.togglePinReporting(1, HIGH, REPORT_DIGITAL)
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
 }
 
 func (b *board) findEvents(name string) []event {
