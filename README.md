@@ -1,3 +1,5 @@
+###NOTE: This repo has been merged into the main Gobot project and will soon be deprecated. It is no longer separately maintained. Please use the Gobot [dev](https://github.com/hybridgroup/gobot/tree/dev) branch for the most up to date code.
+
 # gobot-firmata
 
 Gobot (http://gobot.io/) is a library for robotics and physical computing using Go
